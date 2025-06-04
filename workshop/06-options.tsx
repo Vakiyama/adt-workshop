@@ -8,7 +8,7 @@ import { match, P } from 'ts-pattern';
  * ──────────────────────────────────────────────────────────────────────────────
  *
  *  # Problem
- *    JavaScript has two sentinel values for “nothing”: `null` and `undefined`.
+ *    JavaScript has two values for “nothing”: `null` and `undefined`.
  *    Because they replace whatever was there, every assignment widens unions
  *    and forces you to keep a mental table of “what can this be now?”
  *

@@ -39,7 +39,8 @@ export function NaiveModalDemo() {
 
   return (
     <dialog open>
-      <h2>{modal.title ? modal.title : 'No title?'}</h2>
+      {/* we shouldn't ever have to handle this case... */}
+      <h2>{modal.title ? modal.title : 'No title?'}</h2>{' '}
       <button onClick={() => setModal({ isOpen: false, title: null })}>
         Close
       </button>
