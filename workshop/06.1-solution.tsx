@@ -36,10 +36,10 @@ export function getMessage(lastWeek: LastWeek) {
       // let's match again:
 
       match(value)
-        .with(Option.P.None, () => "Seems like you didn't log in yesterday!") // no data, day was None
+        .with(Option.P.None, () => "Seems like you didn't log in last week!") // no data, day was None
         .with(
           Option.P.Some(P.select()),
-          () => "I see you didn't generate any prototypes yesterday!"
+          () => "I see you didn't generate any prototypes last week!"
         ) // did log in, didn't generate anything
         .exhaustive(); // we know we're done
     })
