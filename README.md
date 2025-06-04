@@ -1,15 +1,7 @@
 # adt-workshop
 
-To install dependencies:
 
-```bash
-bun install
-```
+To start, run `git clone https://github.com/Vakiyama/adt-workshop`
 
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.1.31. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+Checkout /workshop for the lessons.
+Each lesson will have various TODO []'s throughout; You can mark a todo as complete by marking it with an x: TODO [x] for example.
