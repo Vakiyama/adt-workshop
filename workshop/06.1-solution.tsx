@@ -1,4 +1,4 @@
-// My solution to 05.
+// My solution to 06.
 
 import { Option } from '@swan-io/boxed';
 import { match, P } from 'ts-pattern';
