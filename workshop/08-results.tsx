@@ -66,46 +66,7 @@ export function describe<T>(r: Result<T, Error>): string {
  *   .exhaustive().  Restore the branch to make the error disappear.
  */
 
-/* ───────────────────── 3. MAP AND FLATMAP, STEP BY STEP ─────────────────── */
-
-// 3.1  start: a helper that may fail to parse a number
-function parseNumber(s: string): Result<number, string> {
-  const n = Number(s);
-  return Number.isNaN(n) ? Result.Error('not a number') : Result.Ok(n);
-}
-
-// 3.2  transform the success value only
-export function squareIfNumber(raw: string): Result<number, string> {
-  return parseNumber(raw).map((n) => n * n); // map runs only on Ok branch
-}
-
-// 3.3  chain another fallible step
-function positive(n: number): Result<number, string> {
-  return n > 0 ? Result.Ok(n) : Result.Error('negative');
-}
-
-export function positiveSquare(raw: string): Result<number, string> {
-  return parseNumber(raw)
-    .flatMap(positive) // maybe fail
-    .map((n) => n * n); // run only if still Ok
-}
-
-// 3.4  final rendering with pattern match
-export function renderSquare(raw: string): string {
-  return match(positiveSquare(raw))
-    .with(Result.P.Ok(P.select()), (value) => `square = ${value}`)
-    .with(Result.P.Error(P.select()), (error) => `⚠️ ${error}`)
-    .exhaustive();
-}
-
-/*  Observation
-    -----------
-    • No try/catch blocks.
-    • No double guard on { ok, value, error }.
-    • Each pipeline step declares whether it can fail via the Result type.
-*/
-
-/* ───────────────────── 4. FROM EXCEPTIONS TO RESULT ─────────────────────── */
+/* ───────────────────── 3. FROM EXCEPTIONS TO RESULT ─────────────────────── */
 
 type Wireframe = string; // simplified
 
@@ -167,45 +128,32 @@ export async function showShapeCount(id: number) {
     .exhaustive();
 }
 
-/* ───────────────────── 5. TODO — PRACTICE REWRITE ─────────────────────────
+// ───────────────────── 4. TODO — PRACTICE REWRITE ─────────────────────────
 
- a) Pick any mightFail call in the codebase.  
-    Replace its tuple with Result.Ok / Result.Error and refactor the consumer
-    to a single match expression.
-
- b) Using parseNumber above, write
+/*
+ a) Using parseNumber above, write
       function halfIfEven(raw: string): Result<number, string>
     that parses, then flatMaps to ensure the number is even, then maps to
     divide by 2.
-
- c) Convert the exception-throwing formatCurrency demo from lesson 07 to
-    return Result<number, Error>.  Observe how the try/catch in callers
-    becomes unnecessary.
-
-      Bonus: Use the given "error classes" to make it obvious what was the error.
-
-
-  d) Write a function that calls the format currency function and prints a helpful message.
-
-    Bonus: How many variants does your final result type have?
-
-*/
-
-// A: Pick your own function from our codebase
-
-// B:
+ */
 
 export function halfIfEven(raw: string): Result<number, string> {
   throw new Error('TODO');
 }
 
-// C:
+/*
+ b) Convert the exception-throwing formatCurrency demo from lesson 07 to
+    return Result<number, Error>.  Observe how the try/catch in callers
+    becomes unnecessary.
+
+      Bonus: Use the given "error classes" to make it obvious what was the error.
+*/
 
 // provided error classes:
 
 // instead of returning a Result.Error(new Error()), try: Result.Error(new NetworkError())
 class NetworkError {
-  static _tag: 'NetworkError';
+  _tag = 'NetworkError';
 }
 
 // instead of returning a Result.Error(new Error()), try: Result.Error(new InvalidNumber(*number here*))
@@ -216,7 +164,7 @@ class InvalidNumber {
     this.number = n;
   }
 
-  static _tag: 'InvalidNumber';
+  _tag = 'InvalidNumber';
 }
 
 function fetchNumber(possibleFail: boolean): number {
@@ -241,4 +189,10 @@ export function formatPositiveCurrency(flag: boolean): string {
   return 'N/A';
 }
 
-// D:
+/*
+  c) Write a function that calls the format currency function and prints a helpful message.
+    Bonus: How many variants does your consumed result type have? How print statements did you write?
+  * */
+
+// replace the "any" with your result type
+export function printFormattedCurrency(formattedCurrency: any) {}

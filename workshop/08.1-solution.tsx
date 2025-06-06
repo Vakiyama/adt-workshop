@@ -1,85 +1,87 @@
 import { Result } from '@swan-io/boxed';
 import { match, P } from 'ts-pattern';
 
-/* helpers reused from the lesson */
+/* ──────────────────────────────  a) halfIfEven  ─────────────────────────── */
+
+/* tiny helper from the lesson */
 function parseNumber(s: string): Result<number, string> {
   const n = Number(s);
   return Number.isNaN(n) ? Result.Error('not a number') : Result.Ok(n);
 }
 
-/* -------------------------------------------------------------------------- */
-/* B ‣ halfIfEven                                                             */
-/* -------------------------------------------------------------------------- */
 /*
-   1. parseNumber           Result<number,string>
-   2. ensure even           flatMap
-   3. divide by 2           map
+   • parse                      → Result<number,string>
+   • if even, divide by two     → Ok(n / 2)
+   • otherwise                  → Error("Not even")
+   • pattern match handles the two Result variants in one place
 */
 export function halfIfEven(raw: string): Result<number, string> {
-  return parseNumber(raw) // Result<number,string>
-    .flatMap((n) => {
-      const isEven = n % 2 === 0;
-
-      return isEven ? Result.Ok(n) : Result.Error('not even');
-    }) // still Result<number,string>, since flatMap takes a Result<Result<...>> and merges it into a Result<...>
-    .map((n) => n / 2); // transform success (function runs on the Result<T, ...> -> Result<T, ...>), ignoring the error case
+  return match(parseNumber(raw))
+    .with(Result.P.Ok(P.select()), (n) =>
+      n % 2 === 0 ? Result.Ok(n / 2) : Result.Error('Not even')
+    )
+    .with(Result.P.Error(P.select()), Result.Error) // forward the original error
+    .exhaustive();
 }
 
-/* -------------------------------------------------------------------------- */
-/* C ‣ formatPositiveCurrency rewritten with Result & typed errors                    */
-/* -------------------------------------------------------------------------- */
+/* ─────────────────────────────── b) formatCurrency  ─────────────────────── */
 
+/* tagged error helpers */
 class NetworkError {
   readonly _tag = 'NetworkError';
 }
-
 class InvalidNumber {
   readonly _tag = 'InvalidNumber';
   constructor(readonly number: number) {}
 }
 
-/* fetchNumber now returns Result */
+/* network request now returns Result, not throw */
 function fetchNumber(flag: boolean): Result<number, NetworkError> {
-  const number = Math.random() > 0.5 ? -5 : 42;
-
-  return flag ? Result.Error(new NetworkError()) : Result.Ok(number);
+  if (flag) return Result.Error(new NetworkError());
+  const n = Math.random() > 0.5 ? -5 : 42; // -5 triggers InvalidNumber later
+  return Result.Ok(n);
 }
 
-/* compose fetchNumber with formatting */
+/*
+   • call fetchNumber
+   • bail early if network failed
+   • verify positivity, else InvalidNumber
+   • format to `$xx.xx`
+*/
 export function formatPositiveCurrency(
   flag: boolean
 ): Result<string, NetworkError | InvalidNumber> {
-  return fetchNumber(flag) // Result<number,NetworkError>
-    .flatMap((n) => (n < 0 ? Result.Error(new InvalidNumber(n)) : Result.Ok(n))) // Result<number,NetErr|InvNum>
-    .map((n) => `$${n.toFixed(2)}`); // Result<string, ...>
-}
-
-/* -------------------------------------------------------------------------- */
-/* D ‣ helper that calls formatPositiveCurrency and prints a friendly message         */
-/* -------------------------------------------------------------------------- */
-
-export function logCurrency(flag: boolean) {
-  const res = formatPositiveCurrency(flag);
-
-  const msg = match(res) // match on the result
-    .with(Result.P.Ok(P.select()), (s) => `✅ formatted: ${s}`)
-    .with(Result.P.Error(P.select()), (e) => {
-      // now we match on the error in the result!
-      return match(e)
-        .with(
-          { _tag: 'NetworkError' },
-          () => '🌐 network issue—try again later'
-        )
-        .with(
-          { _tag: 'InvalidNumber' },
-          (invalidNumberError) =>
-            `🔢 invalid number Got: (${invalidNumberError.number})`
-        )
-        .exhaustive();
-    })
+  return match(fetchNumber(flag))
+    .with(Result.P.Ok(P.select()), (n) =>
+      n < 0 ? Result.Error(new InvalidNumber(n)) : Result.Ok(n.toFixed(2))
+    )
+    .with(Result.P.Error(P.select()), Result.Error)
     .exhaustive();
-
-  console.log(msg);
 }
 
-logCurrency(Math.random() > 0.5); // error handled internally
+/* ─────────────────────────────── c) pretty logger  ──────────────────────── */
+/*
+   Consumes Result<string, NetworkError | InvalidNumber>
+   Variants = 3   (Ok | NetworkError | InvalidNumber) ➜ 3 console paths
+*/
+export function printFormattedCurrency(
+  r: Result<string, NetworkError | InvalidNumber>
+) {
+  match(r)
+    .with(Result.P.Ok(P.select()), (txt) => console.log(`You have: ${txt} USD`))
+    .with(Result.P.Error(P.select()), (err) =>
+      match(err)
+        .with({ _tag: 'NetworkError' }, () =>
+          console.error('🚫 Network error, try again later.')
+        )
+        .with({ _tag: 'InvalidNumber' }, ({ number }) =>
+          console.error(`🚫 Invalid number received: ${number}`)
+        )
+        .exhaustive()
+    )
+    .exhaustive();
+}
+
+/* quick demo */
+const currency = formatPositiveCurrency(false);
+printFormattedCurrency(currency);
