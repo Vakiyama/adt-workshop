@@ -4,7 +4,7 @@ export const client = {
     v0: {
       shapes: {
         ':projectId': {
-          $get: async (input: { param: { projectId: string } }) => ({
+          $get: async (_: { param: { projectId: string } }) => ({
             json: async () => ({ shape: ['square', 'page'] }),
             ok: Math.random() > 0.5,
           }),
