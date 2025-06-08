@@ -1,4 +1,5 @@
 import { Result } from '@swan-io/boxed';
+import { exhaustive } from 'exhaustive';
 import { match, P } from 'ts-pattern';
 
 /* ──────────────────────────────  a) halfIfEven  ─────────────────────────── */
@@ -16,12 +17,10 @@ function parseNumber(s: string): Result<number, string> {
    • pattern match handles the two Result variants in one place
 */
 export function halfIfEven(raw: string): Result<number, string> {
-  return match(parseNumber(raw))
-    .with(Result.P.Ok(P.select()), (n) =>
-      n % 2 === 0 ? Result.Ok(n / 2) : Result.Error('Not even')
-    )
-    .with(Result.P.Error(P.select()), Result.Error) // forward the original error
-    .exhaustive();
+  return parseNumber(raw).match({
+    Ok: (n) => (n % 2 === 0 ? Result.Ok(n / 2) : Result.Error('Not even')),
+    Error: Result.Error,
+  });
 }
 
 /* ─────────────────────────────── b) formatCurrency  ─────────────────────── */
@@ -69,14 +68,11 @@ export function printFormattedCurrency(
   r.match({
     Ok: (txt) => console.log(`You have: ${txt} USD`),
     Error: (err) => {
-      return match(err)
-        .with({ _tag: 'NetworkError' }, () =>
-          console.error('🚫 Network error, try again later.')
-        )
-        .with({ _tag: 'InvalidNumber' }, ({ number }) =>
-          console.error(`🚫 Invalid number received: ${number}`)
-        )
-        .exhaustive();
+      exhaustive(err, '_tag', {
+        NetworkError: () => console.error('🚫 Network error, try again later.'),
+        InvalidNumber: ({ number }) =>
+          console.error(`🚫 Invalid number received: ${number}`),
+      });
     },
   });
 }

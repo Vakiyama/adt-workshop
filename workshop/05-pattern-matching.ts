@@ -7,6 +7,7 @@
 /* 0 ▸  Setup                                                                 */
 /* -------------------------------------------------------------------------- */
 
+import { exhaustive } from 'exhaustive';
 import { match } from 'ts-pattern'; // pattern matcher
 
 // ts-pattern is a library that allows us to do more powerful branches.
@@ -46,15 +47,24 @@ export function logStatus(state: Status) {
 /* 2 ▸  A discriminated union with payload                                    */
 /* -------------------------------------------------------------------------- */
 
-type HttpSuccess = { tag: 'Success'; body: string };
-type HttpFailure = { tag: 'Failure'; status: number; message: string };
+type HttpSuccess = { _tag: 'Success'; body: string };
+type HttpFailure = { _tag: 'Failure'; status: number; message: string };
 type HttpResult = HttpSuccess | HttpFailure;
 
 export function render(result: HttpResult) {
   return match(result)
-    .with({ tag: 'Success' }, ({ body }) => `✔ ${body}`) // destructuring the object
-    .with({ tag: 'Failure' }, (failure) => `❌ Error ${failure.status}`) // getting the whole object (could also do { status } here)
+    .with({ _tag: 'Success' }, ({ body }) => `✔ ${body}`) // destructuring the object
+    .with({ _tag: 'Failure' }, (failure) => `❌ Error ${failure.status}`) // getting the whole object (could also do { status } here)
     .exhaustive();
+}
+
+// for tagged unions like this, I like this library as it's cleaner
+
+export function render2(result: HttpResult) {
+  return exhaustive(result, '_tag', {
+    Success: ({ body }) => `✔ ${body}`, // destructuring the object
+    Failure: (failure) => `❌ Error ${failure.status}`, // getting the whole object (could also do { status } here)
+  });
 }
 
 /* TODO []
