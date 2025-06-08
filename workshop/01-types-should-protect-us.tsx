@@ -2,13 +2,13 @@ import { useState } from 'react';
 
 /**
  * ──────────────────────────────────────────────────────────────────────────────
- * 01 ‣ TYPES SHOULD PROTECT US — *null isn’t enough*
+ * 01 ‣ TYPES SHOULD PROTECT US
  * ──────────────────────────────────────────────────────────────────────────────
  *
  *  Premise
  *  -------
- *  A single object with nullable fields often allows **impossible
- *  combinations**.  A tiny discriminated-union eliminates them.
+ *  A single object with nullable fields often allows impossible
+ *  combinations.  A tiny discriminated-union eliminates them.
  *
  */
 
@@ -39,8 +39,8 @@ export function NaiveModalDemo() {
 
   return (
     <dialog open>
-      {/* we shouldn't ever have to handle this case... */}
       <h2>{modal.title ? modal.title : 'No title?'}</h2>{' '}
+      {/* we shouldn't ever have to handle this case... */}
       <button onClick={() => setModal({ isOpen: false, title: null })}>
         Close
       </button>

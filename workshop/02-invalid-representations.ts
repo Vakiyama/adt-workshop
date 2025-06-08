@@ -1,12 +1,11 @@
 /**
  * ──────────────────────────────────────────────────────────────────────────────
- * 02 ‣ FLAGS vs. UNIONS — *the “eight-state” query bug*
+ * 02 ‣ FLAGS vs. UNIONS — the “eight-state” query bug
  * ──────────────────────────────────────────────────────────────────────────────
  *
  *  Goal ▶ Show how a tiny discriminated union eliminates four impossible
  *          combinations the flag-object happily allows.
  *
- *  Still **plain TypeScript**; no external libraries yet.
  */
 
 /* ───────────────────────────── 1. THE PITFALL ────────────────────────────── */
@@ -24,6 +23,8 @@ type QueryResult = {
 /*
   How many concrete states?  2 × 2 × 2 = 8.
 
+// TODO [] Fill in the meanings as best you can
+  
       data        isLoading  error      ▶ Meaning 
   ────────────────────────────────────────────────────────
  1.  undefined    false      undefined   TODO
@@ -36,7 +37,6 @@ type QueryResult = {
  8.  undefined    true       Err         TODO 
 */
 
-// TODO [] Fill in the meanings as best you can
 
 // TODO [] Implement render query. Give back a string that handles each case (it's ok to give up).
 export function renderQuery(q: QueryResult): string {
@@ -77,5 +77,5 @@ export function renderState(state: QueryState): string {
 /**
  * TODO [] Add a new variant `"Stale"` to `QueryState`
  *        representing cached data older than 5 minutes.
- *        Observe how TypeScript flags *every* switch that ignores it.
+ *        Observe how TypeScript flags every switch that ignores it.
  */
