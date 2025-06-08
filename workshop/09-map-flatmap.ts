@@ -1,5 +1,4 @@
 import { Result } from '@swan-io/boxed';
-import { match, P } from 'ts-pattern';
 import { halfIfEven } from './08-results';
 
 /**
@@ -33,18 +32,19 @@ function ensurePositive(n: number): Result<number, string> {
 
 /* step-by-step with explicit match blocks */
 export function nestedMatches(raw: string): Result<string, string> {
-  const a = parseIntResult(raw);
+  const asyncData = parseIntResult(raw);
 
-  return match(a) // hard to read
-    .with(Result.P.Error(P.select()), Result.Error) // <- just returns the error...
-    .with(Result.P.Ok(P.select()), (n) => {
-      const b = ensurePositive(n);
-      return match(b)
-        .with(Result.P.Error(P.select()), Result.Error) // <- just returns the error...
-        .with(Result.P.Ok(P.select()), (pos) => Result.Ok(`value = ${pos}`))
-        .exhaustive();
-    })
-    .exhaustive();
+  return asyncData.match({
+    Error: Result.Error, // <- just returns the error...
+    Ok: (n) => {
+      const b = ensurePositive(n); // actual thing we want to do
+
+      return b.match({
+        Error: Result.Error, // <- just returns the error...
+        Ok: (pos) => Result.Ok(`value = ${pos}`), // actual thing we want to do
+      });
+    },
+  });
 }
 
 /* ─────────────── 2. MAP – transform the value when it is Ok only ────────── */
@@ -63,6 +63,8 @@ export function double(n: number): number {
 export function parseAndDouble(raw: string): Result<number, string> {
   return parseIntResult(raw) // Result<number,string>
     .map(double); // still Result<number,string>
+
+  // Result<number, string> -> map(double) -> Result<number * 2, string> (or Result<double(number), string>)
 }
 
 /* ───────────────── 3. FlatMap   ─────────────── */
@@ -76,7 +78,7 @@ function half(n: number): Result<number, string> {
 
 // const nested = parseIntResult("8").map(half); // <- uncomment me
 
-// type => Result<Result<number,string>,string>
+// type => Result<Result<number,string>,string> <- not what we want
 
 // no Result<Result<...>>!
 export function halfIfEven_flat(raw: string): Result<number, string> {
@@ -115,18 +117,19 @@ export function under100(n: number): Result<number, string> {
 export function nestedMatchesWithMap(raw: string): Result<string, string> {
   // TODO: ❌ remove match
 
-  const a = parseIntResult(raw);
+  const asyncData = parseIntResult(raw);
 
-  return match(a) // hard to read
-    .with(Result.P.Error(P.select()), Result.Error) // <- just returns the error...
-    .with(Result.P.Ok(P.select()), (n) => {
-      const b = ensurePositive(n);
-      return match(b)
-        .with(Result.P.Error(P.select()), Result.Error) // <- just returns the error...
-        .with(Result.P.Ok(P.select()), (pos) => Result.Ok(`value = ${pos}`))
-        .exhaustive();
-    })
-    .exhaustive();
+  return asyncData.match({
+    Error: Result.Error, // <- just returns the error...
+    Ok: (n) => {
+      const b = ensurePositive(n); // actual thing we want to do
+
+      return b.match({
+        Error: Result.Error, // <- just returns the error...
+        Ok: (pos) => Result.Ok(`value = ${pos}`), // actual thing we want to do
+      });
+    },
+  });
 }
 
 /*

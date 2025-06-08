@@ -13,7 +13,7 @@ import { match } from 'ts-pattern'; // pattern matcher
 //
 // This is useful when thinking about ADT's and variants and has some nicer utilities than switch statements.
 // If we know we have 4 cases; a better switch statement can help us handle them.
-// Also, ts-pattern has nice interop with some libraries will use to fix the null/undefined problem.
+// Also, ts-pattern has nice interop with some libraries we will use to fix the null/undefined problem.
 
 /* -------------------------------------------------------------------------- */
 /* 1 ▸  ts-pattern with a tiny union                                          */

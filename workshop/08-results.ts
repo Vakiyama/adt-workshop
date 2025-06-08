@@ -1,5 +1,4 @@
 import { Result } from '@swan-io/boxed';
-import { match, P } from 'ts-pattern';
 import { client } from '../helpers/08-helpers';
 // ─────────────────────────────────────────────────────────────────────────────
 // 08 ‣ RESULT — explicit success OR explicit failure
@@ -26,7 +25,7 @@ import { client } from '../helpers/08-helpers';
 //
 //  One discriminant, one branch, and pattern matching proves exhaustiveness.
 //  Later we will see how .map and .flatMap collapse success-only pipelines.
-//  Dependencies are already installed: @swan-io/boxed ts-pattern
+//  Dependencies are already installed: @swan-io/boxed
 //
 
 /* ─────────────────────────── 1. CONSTRUCTING RESULTS ────────────────────── */
@@ -55,15 +54,15 @@ export async function toResult<T>(p: Promise<T>): Promise<Result<T, Error>> {
 /* ───────────────────── 2. INSPECTING WITH PATTERN MATCH ─────────────────── */
 
 export function describe<T>(r: Result<T, Error>): string {
-  return match(r)
-    .with(Result.P.Ok(P.select()), (value) => `value = ${String(value)}`)
-    .with(Result.P.Error(P.select()), (error) => `error  = ${error.message}`)
-    .exhaustive();
+  return r.match({
+    Ok: (value) => `value = ${String(value)}`,
+    Error: (error) => `error  = ${error.message}`,
+  });
 }
 
 /* TODO ✎
- *   Delete the Error branch above; observe the compiler error produced by
- *   .exhaustive().  Restore the branch to make the error disappear.
+ *   Delete the Error branch above; observe the compiler error produced.
+ *   Restore the branch to make the error disappear.
  */
 
 /* ───────────────────── 3. FROM EXCEPTIONS TO RESULT ─────────────────────── */
@@ -119,13 +118,10 @@ export async function getAllShapesForProjectMightFail(
 // Caller handles both paths once
 export async function showShapeCount(id: number) {
   const shapesResult = await getAllShapesForProject(id);
-  return match(shapesResult)
-    .with(
-      Result.P.Ok(P.select()),
-      (shapes) => `🖼️ We got ${shapes.length} shape(s)`
-    )
-    .with(Result.P.Error(P.select()), (error) => `❌ ${error.message}`)
-    .exhaustive();
+  return shapesResult.match({
+    Ok: (shapes) => `🖼️ We got ${shapes.length} shape(s)`,
+    Error: (error) => `❌ ${error.message}`,
+  });
 }
 
 // ───────────────────── 4. TODO — PRACTICE REWRITE ─────────────────────────
@@ -195,4 +191,4 @@ export function formatPositiveCurrency(flag: boolean): string {
   * */
 
 // replace the "any" with your result type
-export function printFormattedCurrency(formattedCurrency: any) {}
+export function printFormattedCurrency(formattedCurrency: any) { }

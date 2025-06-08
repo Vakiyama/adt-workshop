@@ -1,7 +1,6 @@
 // My solution to 06.
 
 import { Option } from '@swan-io/boxed';
-import { match, P } from 'ts-pattern';
 
 export type DayUsage = Option<{ prototypesGenerated: number }>;
 
@@ -10,13 +9,10 @@ export type LastWeek = DayUsage[]; // week is a list of day
 // LastWeek -> string
 export function getMessage(lastWeek: LastWeek) {
   const result = lastWeek.find((day) =>
-    match(day)
-      .with(Option.P.None, () => true) // not tracked
-      .with(
-        Option.P.Some(P.select()),
-        (value) => value.prototypesGenerated === 0
-      ) // tracked, but no prototypes generated
-      .exhaustive()
+    day.match({
+      None: () => true, // not tracked
+      Some: (value) => value.prototypesGenerated === 0, // tracked, but no prototypes generated
+    })
   );
 
   // we can convert result to an option:
@@ -25,28 +21,15 @@ export function getMessage(lastWeek: LastWeek) {
 
   // and we can match on it
 
-  return match(resultOption)
-    .with(
-      // outer option: we found no empty days or prototypes generated that were 0
-      Option.P.None,
-      () => 'Welcome to Arkhet! (we have no previous data of your activity)'
-    )
-    .with(Option.P.Some(P.select()), (value) => {
-      // now we have the inner option, the day usage
-      // let's match again:
-
-      match(value)
-        .with(Option.P.None, () => "Seems like you didn't log in last week!") // no data, day was None
-        .with(
-          Option.P.Some(P.select()),
-          () => "I see you didn't generate any prototypes last week!"
-        ) // did log in, didn't generate anything
-        .exhaustive(); // we know we're done
-    })
-    .exhaustive();
-
-  // NOTE: This is pretty verbose. Option has helpers that make things simpler, but we're trying to avoid the
-  // extra complexity to get the point across.
+  return resultOption.match({
+    None: () =>
+      'Welcome to Arkhet! (we have no previous data of your activity)',
+    Some: (value) =>
+      value.match({
+        None: () => "Seems like you didn't log in last week!", // no data, day was None
+        Some: () => "I see you didn't generate any prototypes last week!", // did log in, didn't generate anything
+      }),
+  });
 
   // You can ALWAYS do everything you need with boxed types using match statements.
   // when in doubt, use them.

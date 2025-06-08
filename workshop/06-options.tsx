@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Option } from '@swan-io/boxed';
-import { match, P } from 'ts-pattern';
 
 /**
  * ──────────────────────────────────────────────────────────────────────────────
@@ -20,11 +19,11 @@ import { match, P } from 'ts-pattern';
  *        • `Option.Some(42)`  // value present
  *        • `Option.None<number>()` // value absent, but the type is remembered
  *
- *    Pattern matching with ts-pattern + `.exhaustive()` guarantees we deal
+ *    Pattern matching with Option.match guarantees we deal
  *    with both branches, eliminating forgotten cases at compile time.
  *
  *  # Dependencies (already installed here)
- *      bun i @swan-io/boxed ts-pattern
+ *      bun i @swan-io/boxed
  */
 
 /* ──────────────────────────── 1. CONSTRUCTING OPTIONS ────────────────────── */
@@ -40,14 +39,14 @@ export const noneFromUndef = Option.fromUndefined<number>(undefined); // None
 /* ──────────────────────── 2. INSPECTING WITH PATTERN MATCH ───────────────── */
 
 export function describe(opt: Option<number>): string {
-  return match(opt)
-    .with(Option.P.None, () => 'no number')
-    .with(Option.P.Some(P.select()), (n) => `number = ${n}`)
-    .exhaustive(); // remove a branch → TypeScript error
+  return opt.match({
+    None: () => 'No number',
+    Some: (n) => `number = ${n}`,
+  });
 }
 
 /* TODO ✎
- *   Delete the `.with(Option.P.None …)` branch above and watch the compiler
+ *   Delete the `None: () => ...` branch above and watch the compiler
  *   complain; restore it to make the error disappear.
  */
 
@@ -103,21 +102,21 @@ export function ContextMenuRefactored() {
     // setMenu(?)
   }
 
-  return match(menu)
-    .with(Option.P.None, () => (
+  return menu.match({
+    None: () => (
       <button onClick={() => setMenu(Option.Some({ x: 80, y: 40 }))}>
         Show
       </button>
-    ))
-    .with(Option.P.Some(P.select()), (pos) => (
+    ),
+    Some: (pos) => (
       <div
         style={{ left: pos.x, top: pos.y }}
         onClick={() => setMenu(Option.None())}
       >
-        Context Menu (click to hide)
+        <p>Context Menu (click to hide)</p>
       </div>
-    ))
-    .exhaustive();
+    ),
+  });
 }
 
 /* ─────────────────────────── 4. PORTING NULLABLE API ────────────────────── */
@@ -125,10 +124,10 @@ export function ContextMenuRefactored() {
 export function priceTag(raw: number | null | undefined) {
   const opt = Option.fromNullable(raw);
 
-  return match(opt)
-    .with(Option.P.None, () => 'N/A')
-    .with(Option.P.Some(P.select()), (n) => `$${n.toFixed(2)}`)
-    .exhaustive();
+  return opt.match({
+    None: () => 'N/A',
+    Some: (n) => `$${n.toFixed(2)}`,
+  });
 }
 
 /* ───────────────────────── 5. WARM-UP EXERCISES ─────────────────────────── */
@@ -190,8 +189,8 @@ export function getMessage(week: LastWeek): string {
       Option.fromUndefined(x)     // treats undefined as None
 
     // Pattern match
-      match(opt)
-        .with(Option.P.None, …)
-        .with(Option.P.Some(P.select()), …)
-        .exhaustive();
+    opt.match({
+      None: () => ...,
+      Some: (value) => ...,
+    })
 */

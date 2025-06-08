@@ -1,6 +1,4 @@
 import { Result } from '@swan-io/boxed';
-import { match, P } from 'ts-pattern';
-import { halfIfEven } from './08.1-solution';
 
 // helpers
 
@@ -27,10 +25,11 @@ function under100(n: number): Result<number, string> {
 
 function printResult<V, E>(result: Result<V, E>) {
   // helper to print the inner result
-  match(result)
-    .with(Result.P.Ok(P.select()), (a) => console.log(a))
-    .with(Result.P.Error(P.select()), (e) => console.error(e))
-    .exhaustive();
+
+  return result.match({
+    Ok: (a) => console.log(a),
+    Error: (e) => console.error(e),
+  });
 }
 
 const success = parseIntResult('10').flatMap(ensurePositive).flatMap(under100);

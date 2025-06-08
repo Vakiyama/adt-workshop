@@ -32,7 +32,7 @@ class NetworkError {
 }
 class InvalidNumber {
   readonly _tag = 'InvalidNumber';
-  constructor(readonly number: number) {}
+  constructor(readonly number: number) { }
 }
 
 /* network request now returns Result, not throw */
@@ -51,12 +51,11 @@ function fetchNumber(flag: boolean): Result<number, NetworkError> {
 export function formatPositiveCurrency(
   flag: boolean
 ): Result<string, NetworkError | InvalidNumber> {
-  return match(fetchNumber(flag))
-    .with(Result.P.Ok(P.select()), (n) =>
-      n < 0 ? Result.Error(new InvalidNumber(n)) : Result.Ok(n.toFixed(2))
-    )
-    .with(Result.P.Error(P.select()), Result.Error)
-    .exhaustive();
+  return fetchNumber(flag).match({
+    Ok: (n) =>
+      n < 0 ? Result.Error(new InvalidNumber(n)) : Result.Ok(n.toFixed(2)),
+    Error: Result.Error,
+  });
 }
 
 /* ─────────────────────────────── c) pretty logger  ──────────────────────── */
@@ -67,19 +66,19 @@ export function formatPositiveCurrency(
 export function printFormattedCurrency(
   r: Result<string, NetworkError | InvalidNumber>
 ) {
-  match(r)
-    .with(Result.P.Ok(P.select()), (txt) => console.log(`You have: ${txt} USD`))
-    .with(Result.P.Error(P.select()), (err) =>
-      match(err)
+  r.match({
+    Ok: (txt) => console.log(`You have: ${txt} USD`),
+    Error: (err) => {
+      return match(err)
         .with({ _tag: 'NetworkError' }, () =>
           console.error('🚫 Network error, try again later.')
         )
         .with({ _tag: 'InvalidNumber' }, ({ number }) =>
           console.error(`🚫 Invalid number received: ${number}`)
         )
-        .exhaustive()
-    )
-    .exhaustive();
+        .exhaustive();
+    },
+  });
 }
 
 /* quick demo */
